@@ -110,3 +110,11 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// Returns the number of files that the process 
+// identified by pid currently has open
+uint64
+sys_getfilenum(void)
+{
+  return 0;
+}
