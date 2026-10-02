@@ -699,3 +699,28 @@ procdump(void)
     printk("\n");
   }
 }
+
+
+// Returns the number of files that the process 
+// identified by pid currently has open
+int 
+getfilenum(int pid)
+{
+  struct proc *p;
+  int count;
+  
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state != UNUSED && p->pid == pid){
+      count = 0;
+      for(int fd = 0; fd < NOFILE; fd++){
+        if(p->ofile[fd] != 0)
+          count++;
+      }
+      release(&p->lock);
+      return count;
+    }
+    release(&p->lock);
+  }
+  return -1;
+}

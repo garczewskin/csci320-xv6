@@ -116,5 +116,7 @@ sys_uptime(void)
 uint64
 sys_getfilenum(void)
 {
-  return 0;
+  int pid;
+  argint(0, &pid);
+  return getfilenum(pid);
 }
