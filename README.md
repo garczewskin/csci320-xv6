@@ -2,7 +2,9 @@
 **This repo contains work on the xv6 operating system for CSCI 320**
 
 ### Work Done
-
+- Added syscall `getfilenum` which returns the number of files that the 
+process identified by pid currently has open. Added `getfilenum.c` to
+test this syscall
 
 
 ### Original README
