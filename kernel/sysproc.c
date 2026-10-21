@@ -120,3 +120,14 @@ sys_getfilenum(void)
   argint(0, &pid);
   return getfilenum(pid);
 }
+
+uint64
+sys_getpinfo(void)
+{
+  uint64 addr;
+
+  argaddr(0, &addr);
+  if (addr == 0)
+    return -1;
+  return kgetpinfo(addr);
+}

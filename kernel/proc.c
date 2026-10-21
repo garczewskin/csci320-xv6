@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "pstat.h"
 
 struct cpu cpus[NCPU];
 
@@ -124,6 +125,10 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+
+  p->runtime = 0;
+  p->pass = 0;
+  p->stride = 1;
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
@@ -449,6 +454,7 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
+        p->runtime++;  // Increment runtime
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -723,4 +729,25 @@ getfilenum(int pid)
     release(&p->lock);
   }
   return -1;
+}
+
+int
+kgetpinfo(uint64 addr)
+{
+  struct pstat ps;
+  struct proc *p;
+  int i = 0;
+
+  for (p = proc; p < &proc[NPROC]; p++, i++) {
+    acquire(&p->lock);
+    ps.inuse[i]   = (p->state != UNUSED);
+    ps.pid[i]     = p->pid;
+    ps.runtime[i] = p->runtime;
+    release(&p->lock);
+  }
+
+  struct proc *me = myproc();
+  if (copyout(me->pagetable, me->sz, addr, (char *)&ps, sizeof(ps)) < 0)
+    return -1;
+  return 0;
 }
