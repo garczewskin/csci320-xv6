@@ -427,6 +427,27 @@ kwait(uint64 addr)
   }
 }
 
+static void
+maybe_reset_pass(void)
+{
+  acquire(&pass_lock);
+  int need = (passTotal >= MAXPASSTOTAL);
+  release(&pass_lock);
+  if (!need)
+    return;
+
+  struct proc *p;
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    p->pass = 0;
+    release(&p->lock);
+  }
+  acquire(&pass_lock);
+  passTotal = 0;
+  release(&pass_lock);
+}
+
+
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -444,6 +465,9 @@ scheduler(void)
   for (;;) {
     intr_on();
     intr_off();
+
+    maybe_reset_pass();
+
 
     // Pass 1: find the lowest-pass RUNNABLE process.
     struct proc *best = 0;
