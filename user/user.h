@@ -28,6 +28,7 @@ int uptime(void);
 int sync(void);
 int getfilenum(int pid);
 int getpinfo(struct pstat *);
+int setStride(int);
 
 // ulib.c
 int stat(const char *, struct stat *);

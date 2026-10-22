@@ -121,6 +121,8 @@ sys_getfilenum(void)
   return getfilenum(pid);
 }
 
+
+// New getpinfo syscall
 uint64
 sys_getpinfo(void)
 {
@@ -130,4 +132,21 @@ sys_getpinfo(void)
   if (addr == 0)
     return -1;
   return kgetpinfo(addr);
+}
+
+
+// New setStride syscall
+uint64
+sys_setStride(void)
+{
+  int s;
+
+  argint(0, &s);
+  if (s < 1)
+    return -1;
+  struct proc *p = myproc();
+  acquire(&p->lock);
+  p->stride = s;
+  release(&p->lock);
+  return 0;
 }

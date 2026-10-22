@@ -12,10 +12,11 @@ main(void)
     printf("pinfo: getpinfo failed\n");
     exit(1);
   }
-  printf("PID\tRUNTIME\n");
+  printf("PID\tRUNTIME\tPASS\tSTRIDE\n");
   for (int i = 0; i < NPROC; i++) {
     if (ps.inuse[i])
-      printf("%d\t%d\n", ps.pid[i], ps.runtime[i]);
+      printf("%d\t%d\t%d\t%d\n", ps.pid[i], ps.runtime[i], ps.pass[i], ps.stride[i]);
   }
+  printf("passTotal: %d\n", ps.passTotal);
   exit(0);
 }

@@ -45,3 +45,4 @@ entry("uptime");
 entry("sync");
 entry("getfilenum");
 entry("getpinfo");
+entry("setStride");

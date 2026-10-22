@@ -11,6 +11,10 @@ struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
+#define MAXPASSTOTAL 1000000
+int passTotal = 0;
+struct spinlock pass_lock;
+
 struct proc *initproc;
 
 int nextpid = 1;
@@ -52,6 +56,7 @@ procinit(void)
 
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
+  initlock(&pass_lock, "pass");
   for (p = proc; p < &proc[NPROC]; p++) {
     initlock(&p->lock, "proc");
     p->state = UNUSED;
@@ -125,7 +130,6 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-
   p->runtime = 0;
   p->pass = 0;
   p->stride = 1;
@@ -438,40 +442,45 @@ scheduler(void)
 
   c->proc = 0;
   for (;;) {
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting. Then turn them back off
-    // to avoid a possible race between an interrupt
-    // and wfi.
     intr_on();
     intr_off();
 
-    int found = 0;
+    // Pass 1: find the lowest-pass RUNNABLE process.
+    struct proc *best = 0;
+    int bestpass = 0;
     for (p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if (p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        p->runtime++;  // Increment runtime
-        c->proc = p;
-        swtch(&c->context, &p->context);
-
-        // Don't re-enable interrupts on release.
-        mycpu()->intena = 0;
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+      if (p->state == RUNNABLE && (best == 0 || p->pass < bestpass)) {
+        best = p;
+        bestpass = p->pass;
       }
       release(&p->lock);
     }
-    if (found == 0) {
+
+    if (best == 0) {
       // nothing to run; stop running on this core until an interrupt.
       asm volatile("wfi");
+      continue;
     }
+
+    // Pass 2: lock the winner and confirm it is still RUNNABLE.
+    p = best;
+    acquire(&p->lock);
+    if (p->state == RUNNABLE) {
+      p->state = RUNNING;
+      p->runtime++;
+      p->pass += p->stride;
+      acquire(&pass_lock);
+      passTotal += p->stride;
+      release(&pass_lock);
+      c->proc = p;
+      swtch(&c->context, &p->context);
+
+      // Don't re-enable interrupts on release.
+      mycpu()->intena = 0;
+      c->proc = 0;
+    }
+    release(&p->lock);
   }
 }
 
@@ -743,8 +752,14 @@ kgetpinfo(uint64 addr)
     ps.inuse[i]   = (p->state != UNUSED);
     ps.pid[i]     = p->pid;
     ps.runtime[i] = p->runtime;
+    ps.pass[i]    = p->pass;
+    ps.stride[i]  = p->stride;
+
     release(&p->lock);
   }
+  acquire(&pass_lock);
+  ps.passTotal = passTotal;
+  release(&pass_lock);
 
   struct proc *me = myproc();
   if (copyout(me->pagetable, me->sz, addr, (char *)&ps, sizeof(ps)) < 0)
