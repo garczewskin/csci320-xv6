@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
 {
     int val;
 /* uncomment the following to use strides */
-/*
+
     if (argc >1)
-        setstride(atoi(argv[1]));
-*/
+        setStride(atoi(argv[1]));
+
     printf("starting main\n");
     val = hardWork();
     printf("%d\n",val);
