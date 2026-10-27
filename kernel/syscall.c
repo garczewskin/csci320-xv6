@@ -104,6 +104,8 @@ extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
 extern uint64 sys_sync(void);
 extern uint64 sys_getfilenum(void);
+extern uint64 sys_getpinfo(void);
+extern uint64 sys_setStride(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -132,6 +134,8 @@ static uint64 (*syscalls[])(void) = {
   [SYS_close]   = sys_close,
   [SYS_sync]    = sys_sync,
   [SYS_getfilenum] = sys_getfilenum,
+  [SYS_getpinfo] = sys_getpinfo,
+  [SYS_setStride] = sys_setStride,
   // clang-format on
 };
 

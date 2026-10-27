@@ -5,6 +5,7 @@
 - Added syscall `getfilenum` which returns the number of files that the 
 process identified by pid currently has open. Added `getfilenum.c` to
 test this syscall
+- Added stride scheduler implementation. Evidence that it works can be found in [scheduler-evidence.md](scheduler-evidence.md).
 
 
 ### Original README
