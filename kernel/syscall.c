@@ -106,6 +106,7 @@ extern uint64 sys_sync(void);
 extern uint64 sys_getfilenum(void);
 extern uint64 sys_getpinfo(void);
 extern uint64 sys_setStride(void);
+extern uint64 sys_pgaccess(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -136,6 +137,7 @@ static uint64 (*syscalls[])(void) = {
   [SYS_getfilenum] = sys_getfilenum,
   [SYS_getpinfo] = sys_getpinfo,
   [SYS_setStride] = sys_setStride,
+  [SYS_pgaccess] = sys_pgaccess,
   // clang-format on
 };
 

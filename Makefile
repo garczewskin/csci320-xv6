@@ -154,6 +154,8 @@ UPROGS=\
 	$U/_pinfo\
 	$U/_hardwork\
 	$U/_monitor\
+	$U/_pgtest\
+	$U/_usystest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

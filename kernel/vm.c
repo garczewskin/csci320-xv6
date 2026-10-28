@@ -489,3 +489,58 @@ ismapped(pagetable_t pagetable, uint64 va)
   }
   return 0;
 }
+
+static void
+vmprint_level(pagetable_t pagetable, int level)
+{
+  for(int i = 0; i < 512; i++){
+    pte_t pte = pagetable[i];
+    if((pte & PTE_V) == 0)
+      continue;
+
+    for(int j = 0; j < level; j++)
+      printk(" ..");
+    printk("%d: pte %p pa %p\n", i, (void *)pte, (void *)PTE2PA(pte));
+    if((pte & (PTE_R|PTE_W|PTE_X)) == 0)
+      vmprint_level((pagetable_t)PTE2PA(pte), level + 1);
+  }
+}
+
+void
+vmprint(pagetable_t pagetable)
+{
+  printk("page table %p\n", pagetable);
+  vmprint_level(pagetable, 1);
+}
+
+#define MAXPGACCESS 32   // one bit per page in a 32-bit mask
+
+int
+pgaccess(pagetable_t pagetable, uint64 psz, uint64 base, int npages, uint64 maskaddr)
+{
+  unsigned int bits = 0;
+
+  if(npages < 0 || npages > MAXPGACCESS)
+    return -1;
+
+  uint64 va = PGROUNDDOWN(base);
+
+  for(int i = 0; i < npages; i++){
+    uint64 a = va + (uint64)i * PGSIZE;
+    if(a >= MAXVA)
+      return -1;                       // walk() panics on addresses this large
+
+    pte_t *pte = walk(pagetable, a, 0); // 0 = do not allocate missing tables
+    if(pte == 0 || (*pte & PTE_V) == 0)
+      continue;                         // page not mapped, leave its bit 0
+
+    if(*pte & PTE_A){
+      bits |= (1U << i);                // record: page i was accessed
+      *pte &= ~PTE_A;                   // clear so next call is fresh
+    }
+  }
+
+ if(copyout(pagetable, psz, maskaddr, (char *)&bits, sizeof(bits)) < 0)
+    return -1;
+  return 0;
+}
