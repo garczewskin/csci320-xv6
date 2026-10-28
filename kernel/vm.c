@@ -490,21 +490,17 @@ ismapped(pagetable_t pagetable, uint64 va)
   return 0;
 }
 
-// Recursively print one page-table page.
-// level is 1 for the top table, 2 for the middle, 3 for the bottom.
 static void
 vmprint_level(pagetable_t pagetable, int level)
 {
   for(int i = 0; i < 512; i++){
     pte_t pte = pagetable[i];
     if((pte & PTE_V) == 0)
-      continue;                       // skip invalid entries
+      continue;
 
     for(int j = 0; j < level; j++)
-      printf(" ..");                  // one " .." per level of depth
-    printf("%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
-
-    // Valid with no R/W/X bits means this entry points to a lower table.
+      printk(" ..");
+    printk("%d: pte %p pa %p\n", i, (void *)pte, (void *)PTE2PA(pte));
     if((pte & (PTE_R|PTE_W|PTE_X)) == 0)
       vmprint_level((pagetable_t)PTE2PA(pte), level + 1);
   }
@@ -513,6 +509,6 @@ vmprint_level(pagetable_t pagetable, int level)
 void
 vmprint(pagetable_t pagetable)
 {
-  printf("page table %p\n", pagetable);
+  printk("page table %p\n", pagetable);
   vmprint_level(pagetable, 1);
 }
