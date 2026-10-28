@@ -29,6 +29,7 @@ int sync(void);
 int getfilenum(int pid);
 int getpinfo(struct pstat *);
 int setStride(int);
+int pgaccess(void *base, int npages, int *mask);
 
 // ulib.c
 int stat(const char *, struct stat *);

@@ -24,3 +24,4 @@
 #define SYS_getfilenum 23
 #define SYS_getpinfo 24
 #define SYS_setStride 25
+#define SYS_pgaccess 26

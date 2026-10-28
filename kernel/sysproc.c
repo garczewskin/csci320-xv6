@@ -150,3 +150,20 @@ sys_setStride(void)
   release(&p->lock);
   return 0;
 }
+
+// New pgaccess syscall
+uint64
+sys_pgaccess(void)
+{
+  uint64 base, maskaddr;
+  int npages;
+
+  argaddr(0, &base);
+  argint(1, &npages);
+  argaddr(2, &maskaddr);
+
+  if (maskaddr == 0)
+    return -1;
+
+  return pgaccess(myproc()->pagetable, myproc()->sz, base, npages, maskaddr);
+}
