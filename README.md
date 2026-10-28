@@ -6,6 +6,10 @@
 process identified by pid currently has open. Added `getfilenum.c` to
 test this syscall
 - Added stride scheduler implementation. Evidence that it works can be found in [scheduler-evidence.md](scheduler-evidence.md).
+- Three virtual memory modifications. Evidence that they work can be found in [vmem-evidence.md](vmem-evidence.md).
+    - Part 1: Add `vmprint()` function
+    - Part 2: Add `pgaccess()` syscall
+    - Part 3: Optimize syscalls using read-only memory
 
 
 ### Original README
